@@ -7,6 +7,39 @@ from eralchemy2 import render_er
 
 Base = declarative_base()
 
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(120), nullable=False, unique=True)
+    firstname = Column(String(120), nullable=False)
+    lastname = Column(String(120), nullable=False)
+    email = Column(String(120), nullable=False, unique=True)
+    password = Column(String(120), nullable=False)
+    posts = relationship('Post', backref='user')
+    comments = relationship('Comment', backref='user')
+
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True)
+    users_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    comments = relationship('Comment', backref='post')
+    medias = relationship('Media', backref='post')
+
+class Comment(Base):
+    __tablename__ = 'comments'
+    id = Column(Integer, primary_key=True)
+    comment_text = Column(String(255), nullable=False)
+    posts_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
+    author_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+
+class Media(Base):
+    __tablename__ = 'medias'
+    id = Column(Integer, primary_key=True)
+    filename = Column(String(120), nullable=False)
+    type = Column(String(40), nullable=False)
+    posts_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
+
 class Person(Base):
     __tablename__ = 'person'
     # Here we define columns for the table person
