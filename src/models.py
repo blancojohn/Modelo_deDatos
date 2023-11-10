@@ -1,12 +1,18 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, declarative_base
-from sqlalchemy import create_engine
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy.orm import declarative_base, relationship, backref
 from eralchemy2 import render_er
+
 
 Base = declarative_base()
 
+followers_table = Table(
+    "followers",
+    Base.metadata, 
+    Column("follower_id", Integer, ForeignKey('users.id'), nullable=False, primary_key=True),   
+    Column("followed_id", Integer, ForeignKey('users.id'), nullable=False, primary_key=True)
+)     
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -17,6 +23,14 @@ class User(Base):
     password = Column(String(120), nullable=False)
     posts = relationship('Post', backref='user')
     comments = relationship('Comment', backref='user')
+
+    followers = relationship(
+        "User", 
+        secondary= followers_table, 
+        primaryjoin= (followers_table.c.follower_id == id), 
+        secondaryjoin= (followers_table.c.followed_id == id),  
+        backref= backref("followeds", lazy="dynamic") 
+    )
 
 class Post(Base):
     __tablename__ = 'posts'
@@ -40,23 +54,6 @@ class Media(Base):
     type = Column(String(40), nullable=False)
     posts_id = Column(Integer, ForeignKey('posts.id'), nullable=False)
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
-
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
 
     def to_dict(self):
         return {}
